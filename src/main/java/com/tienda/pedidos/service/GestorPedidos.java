@@ -1,6 +1,5 @@
 package com.tienda.pedidos.service;
-import java.util.Map;
-import com.tienda.pedidos.descuento.SelectorEstrategiaDescuento;
+import com.tienda.pedidos.descuento.CalculadorDescuentoFinal;
 import com.tienda.pedidos.dto.ItemPedido;
 import com.tienda.pedidos.dto.PedidoRequest;
 import com.tienda.pedidos.dto.ResultadoPedido;
@@ -13,17 +12,19 @@ import com.tienda.pedidos.validacion.ValidadorStock;
 @org.springframework.stereotype.Service
 public class GestorPedidos {
     private final ValidadorPedido primerValidador;
-    private final SelectorEstrategiaDescuento selector;
+    private final CalculadorDescuentoFinal calculadorDescuento;
     private final PedidoRepository repository;
     private final NotificacionPedidoService notificacion;
+    
 
-    public GestorPedidos(ValidadorStock stock, ValidadorCliente cliente,
-                          SelectorEstrategiaDescuento selector, PedidoRepository repository,
-                          NotificacionPedidoService notificacion) {
-        this.primerValidador = stock.encadenar(cliente);
-        this.selector = selector;
+   public GestorPedidos(ValidadorStock stock, ValidadorCliente cliente,
+                          CalculadorDescuentoFinal calculadorDescuento,
+                          PedidoRepository repository, NotificacionPedidoService notificacion) {
+        this.primerValidador = stock;
+        stock.encadenar(cliente);
+        this.calculadorDescuento = calculadorDescuento;
         this.repository = repository;
-        this.notificacion = notificacion;
+        this.notificacion = notificacion; 
     }
 
     public ResultadoPedido procesarPedido(PedidoRequest request) {
@@ -34,7 +35,7 @@ public class GestorPedidos {
         double subtotal = calcularSubtotal(request); // consulta de precios extraida sin cambios de logica
         contexto.setSubtotal(subtotal);
 
-        double descuento = selector.seleccionar(contexto.getTipoCliente()).calcular(contexto);
+        double descuento = calculadorDescuento.calcular(contexto);
         double impuesto = (subtotal - subtotal * descuento) * 0.19;
         double total = subtotal - (subtotal * descuento) + impuesto;
 
@@ -58,4 +59,3 @@ public class GestorPedidos {
     // calcularSubtotal(...) se mantiene como metodo privado de calculo puro, sin SQL embebido
     // en la logica de negocio (se extrae a un pequeno metodo con una unica consulta por item)
 }
-
