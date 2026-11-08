@@ -1,4 +1,18 @@
-# Paso 3. Diagnóstico: identificación de antipatrones
+# Post-contenido — Unidad 6: Antipatrones de Diseño
+
+## Descripción
+Repositorio del post-contenido de la Unidad 6 de Patrones de Diseño
+de Software — Sexto Semestre. Un único proyecto Spring Boot
+(pedidos-service/) con dos partes: diagnóstico y refactorización de
+un antipatrón combinado en GestorPedidos, y diagnóstico y corrección
+de un segundo antipatrón introducido al hacer crecer el mismo
+proyecto con tres campañas de descuento.
+
+
+## Decisiones de diseño
+
+
+### Parte 1 — GestorPedidos
 
 ## 1. Antipatrón principal: God Object 
 
@@ -60,7 +74,7 @@ El código de `GestorPedidos` presenta principalmente dos antipatrones: **God Ob
 
 ---
 
-# Decisiones de diseño
+
 
 ## Decisión de diseño: validación mediante Chain of Responsibility
 
@@ -77,6 +91,8 @@ Se decidió utilizar el patrón **Strategy** para implementar las reglas de desc
 Se consideró utilizar Chain of Responsibility como alternativa, pero este patrón introduce una estructura de manejadores que reciben una solicitud y deciden si la procesan o la delegan al siguiente. Para el cálculo de descuentos, esta delegación no aporta una ventaja significativa, porque no es necesario recorrer diferentes reglas hasta encontrar una que gestione el caso. Por el contrario, un mapa de selección asociado a una fábrica sencilla permite obtener directamente la estrategia correspondiente al tipo de cliente, evitando estructuras condicionales extensas y reduciendo la indirección innecesaria. También puede incorporarse una estrategia de descuento cero para los tipos de cliente que no tengan beneficios especiales.
 
 **Decisión final:** utilizar Strategy junto con un mecanismo sencillo de selección mediante un mapa o fábrica. De esta manera, cada tipo de cliente mantiene su propia política de descuento, facilitando la incorporación de nuevas reglas sin modificar la lógica central de procesamiento del pedido.
+
+### Parte 2 — Crecimiento del proyecto
 
 ### Antipatrón identificado: Golden Hammer
 
@@ -104,3 +120,13 @@ Cabe aclarar que Strategy permite seleccionar entre distintas políticas de desc
 Se eliminaron por completo las clases PromocionBlackFriday, PromocionCorporativo y PromocionVolumen, junto con el campo descuentoCampana, en lugar de dejarlos comentados como referencia histórica. Conservar código descartado mediante comentarios puede favorecer la aparición del antipatrón Lava Flow, ya que las implementaciones obsoletas permanecen en el código fuente sin cumplir una función y, con el tiempo, otros desarrolladores pueden tener dudas sobre si todavía son necesarias. Esta práctica también dificulta distinguir qué código forma parte de la solución vigente.
 
 La decisión de eliminarlos permite mantener una implementación limpia y coherente con el diseño corregido mediante Strategy. Si en algún momento se necesita consultar la implementación anterior, el historial de Git conserva los cambios y permite recuperar esa referencia sin mantener código innecesario dentro del proyecto.
+
+## Cómo ejecutar
+```
+$ mvn spring-boot:run
+$ mvn test
+```
+
+## Herramientas utilizadas
+- Java 17, Spring Boot, Spring JDBC, Maven, H2 Database
+- VS Code , Git, GitHub
