@@ -130,3 +130,7 @@ $ mvn test
 ## Herramientas utilizadas
 - Java 17, Spring Boot, Spring JDBC, Maven, H2 Database
 - VS Code , Git, GitHub
+
+## Conclusiones
+
+El aprendizaje principal de ambas partes es que los patrones de diseño deben seleccionarse de acuerdo con las características del problema y no simplemente por familiaridad o comodidad. En la primera parte, Chain of Responsibility permitió organizar las validaciones de manera secuencial, respetando el orden y la posibilidad de interrumpir el procesamiento cuando ocurre un rechazo. En la segunda parte, se evidenció que aplicar el mismo patrón a las promociones generaba el antipatrón Golden Hammer, por lo que Strategy resultó más adecuado para representar las diferentes políticas de descuento. Finalmente, eliminar el código descartado en lugar de conservarlo comentado permitió evitar acumulaciones innecesarias asociadas con Lava Flow y mantener una implementación más clara y coherente.
