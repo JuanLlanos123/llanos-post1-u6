@@ -77,3 +77,30 @@ Se decidió utilizar el patrón **Strategy** para implementar las reglas de desc
 Se consideró utilizar Chain of Responsibility como alternativa, pero este patrón introduce una estructura de manejadores que reciben una solicitud y deciden si la procesan o la delegan al siguiente. Para el cálculo de descuentos, esta delegación no aporta una ventaja significativa, porque no es necesario recorrer diferentes reglas hasta encontrar una que gestione el caso. Por el contrario, un mapa de selección asociado a una fábrica sencilla permite obtener directamente la estrategia correspondiente al tipo de cliente, evitando estructuras condicionales extensas y reduciendo la indirección innecesaria. También puede incorporarse una estrategia de descuento cero para los tipos de cliente que no tengan beneficios especiales.
 
 **Decisión final:** utilizar Strategy junto con un mecanismo sencillo de selección mediante un mapa o fábrica. De esta manera, cada tipo de cliente mantiene su propia política de descuento, facilitando la incorporación de nuevas reglas sin modificar la lógica central de procesamiento del pedido.
+
+### Antipatrón identificado: Golden Hammer
+
+El antipatrón identificado en la Parte 2 es **Golden Hammer**, porque se utilizó Chain of Responsibility como solución para implementar las promociones, principalmente porque ya se había aplicado en la Parte 1, sin evaluar si era el patrón más apropiado para este nuevo problema.
+
+En la Parte 1, Chain of Responsibility está justificado porque `ValidadorStock` y `ValidadorCliente` participan en un proceso de validación secuencial. El orden importa: primero debe comprobarse la disponibilidad del inventario y, posteriormente, validar al cliente. Además, una validación puede rechazar el pedido e interrumpir el procesamiento.
+
+En cambio, `PromocionBlackFriday`, `PromocionCorporativo` y `PromocionVolumen` no presentan esa dependencia. Ninguna necesita ejecutarse primero que otra ni requiere detener la evaluación de las demás. Su responsabilidad consiste en calcular descuentos, no en decidir si el pedido continúa o se rechaza. Por eso, incorporarlas a `ValidadorPedido` desdibuja el propósito original de esta clase y mezcla la validación del pedido con la aplicación de promociones.
+
+También existe una limitación en la forma de compartir el resultado mediante el campo `descuentoCampana`. Si en el futuro las promociones necesitaran combinar sus descuentos mediante una suma, en lugar de competir por establecer el descuento máximo, sería necesario modificar la lógica de actualización para definir cómo se acumulan los resultados. La cadena, por sí sola, no establece esa regla de combinación.
+
+Por tanto, el problema no es que Chain of Responsibility sea un patrón incorrecto, sino que se aplicó fuera del contexto que justificaba su utilización. Se reutilizó una solución conocida sin analizar las características del nuevo problema, lo que evidencia el antipatrón Golden Hammer.
+
+##Decisión con justificación: Strategy en vez de más eslabones de cadena
+
+La solución se corrigió modelando PromocionBlackFriday, PromocionCorporativo y PromocionVolumen como implementaciones de EstrategiaDescuento, en lugar de incorporarlas como nuevos validadores a la cadena existente. Esta decisión se justifica porque, al igual que DescuentoVip y DescuentoFrecuente, las campañas representan diferentes algoritmos para calcular un porcentaje de descuento. No dependen de un orden de evaluación ni necesitan interrumpir el flujo del pedido, características que sí justifican el uso de Chain of Responsibility en ValidadorStock y ValidadorCliente.
+
+De esta manera, Strategy permite encapsular cada política de descuento y seleccionar la implementación correspondiente sin mezclarla con las responsabilidades de validación. La alternativa de mantener las promociones como eslabones de la cadena fue descartada explícitamente porque reproduciría el problema que originó el antipatrón Golden Hammer: reutilizar una herramienta conocida sin comprobar que sus características corresponden a las necesidades del nuevo problema.
+
+Cabe aclarar que Strategy permite seleccionar entre distintas políticas de descuento, pero no combina automáticamente varias promociones. Si el negocio necesitara acumular descuentos de campañas simultáneas, tendría que definirse adicionalmente una política de composición o acumulación.
+
+
+##Decisión con justificación: eliminar, no comentar, el código descartado
+
+Se eliminaron por completo las clases PromocionBlackFriday, PromocionCorporativo y PromocionVolumen, junto con el campo descuentoCampana, en lugar de dejarlos comentados como referencia histórica. Conservar código descartado mediante comentarios puede favorecer la aparición del antipatrón Lava Flow, ya que las implementaciones obsoletas permanecen en el código fuente sin cumplir una función y, con el tiempo, otros desarrolladores pueden tener dudas sobre si todavía son necesarias. Esta práctica también dificulta distinguir qué código forma parte de la solución vigente.
+
+La decisión de eliminarlos permite mantener una implementación limpia y coherente con el diseño corregido mediante Strategy. Si en algún momento se necesita consultar la implementación anterior, el historial de Git conserva los cambios y permite recuperar esa referencia sin mantener código innecesario dentro del proyecto.
